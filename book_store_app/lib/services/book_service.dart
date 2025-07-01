@@ -73,11 +73,12 @@ class BookService {
       throw Exception("failed to delete book");
     }
   }
+
   Future<void> addToCart(int id) async {
     final response = await http.post(Uri.parse('$baseUrl/book/$id'));
     if (response.statusCode != 200) {
       throw Exception("failed to add in cart ");
     }
   }
-
+}
 
