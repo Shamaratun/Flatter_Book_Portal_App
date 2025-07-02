@@ -1,4 +1,4 @@
-import 'package:book_store_app/screen/home_screen.dart';
+import 'package:book_store_app/screen/login_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -12,10 +12,9 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-
+      title: 'Auth App',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const HomeScreen(),
+      home: const LoginScreen(),
     );
   }
 }

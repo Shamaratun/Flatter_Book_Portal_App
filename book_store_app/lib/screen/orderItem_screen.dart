@@ -19,7 +19,7 @@ class _OrderitemScreenState extends State<OrderitemScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: const Text(' OrderList Management')),
+        appBar: AppBar(title: const Text(' Order List Management')),
         body: FutureBuilder<List<OrderItem>>(
         future: _orderItemService.getAllOrderItems(),
     builder: (context, snapshot) {
