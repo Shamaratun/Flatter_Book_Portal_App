@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../model/book.dart';
+
 import '../model/cart_item.dart';
 import '../services/book_service.dart';
 
@@ -61,6 +61,12 @@ class _CartScreenState extends State<CartScreen> {
     return _cartItems.fold(
       0.0,
       (total, item) => total + item.book.bookPrice * item.quantity,
+    );
+  }
+
+  void _showEmptyToast() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Cart item is ${_cartItems.length}')),
     );
   }
 
@@ -255,7 +261,7 @@ class _CartScreenState extends State<CartScreen> {
                         label: const Text('Checkout'),
                         onPressed: _cartItems.isNotEmpty
                             ? _showCheckoutDialog
-                            : null,
+                            : _showEmptyToast,
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,

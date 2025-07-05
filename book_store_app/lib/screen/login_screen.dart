@@ -38,8 +38,11 @@ class _LoginScreenState extends State<LoginScreen> {
         );
         await const FlutterSecureStorage().write(
           key: 'access_token',
-
           value: response['access_token'],
+        );
+        await const FlutterSecureStorage().write(
+          key: 'user_id',
+          value: response['id'].toString(),
         );
         Navigator.pushReplacement(
           context,

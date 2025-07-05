@@ -1,9 +1,12 @@
 import 'dart:convert';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+
 import '../model/author.dart';
 import '../model/book.dart';
 import '../model/cart_item.dart';
+
 final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
 class BookService {
@@ -120,4 +123,3 @@ class BookService {
     await _secureStorage.delete(key: 'cart_items');
   }
 }
-

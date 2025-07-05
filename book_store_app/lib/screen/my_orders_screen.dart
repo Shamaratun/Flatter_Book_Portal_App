@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 import '../model/OrderResponse.dart';
-import '../services/OrderHistoryService.dart';
+import '../services/order_history_service.dart';
 
 class MyOrdersScreen extends StatefulWidget {
-
   const MyOrdersScreen({super.key});
 
   @override
@@ -12,11 +13,26 @@ class MyOrdersScreen extends StatefulWidget {
 
 class _MyOrdersScreenState extends State<MyOrdersScreen> {
   late Future<List<OrderResponseDto>> _orders;
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
   @override
   void initState() {
     super.initState();
-    _orders = OrderService().getAllOrdersByMe();
+    _loadOrders();
+  }
+
+  Future<void> _loadOrders() async {
+    final userIdStr = await _secureStorage.read(key: "user_id");
+    if (userIdStr != null) {
+      final userId = int.parse(userIdStr);
+      setState(() {
+        _orders = OrderService().getAllOrdersByMe(userId);
+      });
+    } else {
+      setState(() {
+        _orders = OrderService().getAllOrdersByMe(1);
+      });
+    }
   }
 
   @override
@@ -34,27 +50,32 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
             return const Center(child: Text("No orders found."));
           }
 
-          final orders = snapshot.data!;
+          final orderItems = snapshot.data!;
 
           return ListView.builder(
-            itemCount: orders.length,
+            itemCount: orderItems.length,
             itemBuilder: (context, index) {
-              final order = orders[index];
+              final orderItem = orderItems[index];
               return Card(
                 margin: const EdgeInsets.all(8),
                 child: ListTile(
-                  title: Text("Order #${order.orderId} - \$${order.orderPrice}"),
+                  title: Text(
+                    "Order #${orderItem.orderId} - \$${orderItem.orderPrice}",
+                  ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Status: ${order.orderStatus}"),
-                      Text("Date: ${order.createdAt}"),
-                      Text("Address: ${order.userAddress}"),
+                      Text("Status: ${orderItem.orderStatus}"),
+                      Text("Date: ${orderItem.createdAt}"),
+                      Text("Address: ${orderItem.userAddress}"),
                     ],
                   ),
                   isThreeLine: true,
                   onTap: () {
-                    // Optional: Navigate to order detail screen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => MyOrdersScreen()),
+                    );
                   },
                 ),
               );
