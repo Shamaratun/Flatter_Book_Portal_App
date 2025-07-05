@@ -53,9 +53,9 @@ class OrderItemDto {
 
   factory OrderItemDto.fromJson(Map<String, dynamic> json) {
     return OrderItemDto(
-      productName: json['productName'],
-      quantity: json['quantity'],
-      price: (json['price'] as num).toDouble(),
+      productName: json['productName'] ?? '',
+      quantity: json['quantity'] ?? 0,
+      price: (json['price'] != null) ? (json['price'] as num).toDouble() : 0.0,
     );
   }
 }

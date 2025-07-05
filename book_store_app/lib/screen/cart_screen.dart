@@ -1,4 +1,6 @@
+import 'package:book_store_app/services/cart_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../model/cart_item.dart';
 import '../services/book_service.dart';
@@ -12,8 +14,11 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   final BookService _bookService = BookService();
+  final CartService _cartService = CartService();
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   List<CartItem> _cartItems = [];
   bool _isLoading = true;
+  int _user_id = 1;
 
   @override
   void initState() {
@@ -22,10 +27,17 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Future<void> _loadCart() async {
+    int localUserId = 1;
+    final userIdStr = await _secureStorage.read(key: "user_id");
+    if (userIdStr != null) {
+      localUserId = int.parse(userIdStr);
+    }
+
     final items = await _bookService.getLocalCart();
     setState(() {
       _cartItems = items;
       _isLoading = false;
+      _user_id = localUserId;
     });
   }
 
@@ -84,12 +96,36 @@ class _CartScreenState extends State<CartScreen> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              _clearCart();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Checkout successful!')),
-              );
+            onPressed: () async {
+              Navigator.pop(ctx); // Close the dialog
+
+              try {
+                setState(() {
+                  _isLoading = true;
+                });
+
+                await _cartService.placeOrderWithoutAddress(
+                  userId: _user_id,
+                  cartItems: _cartItems,
+                );
+
+                setState(() {
+                  _cartItems.clear(); // Clear cart
+                  _isLoading = false;
+                });
+                _clearCart();
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Checkout successful!')),
+                );
+              } catch (e) {
+                setState(() {
+                  _isLoading = false;
+                });
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('Checkout failed: $e')));
+              }
             },
             child: const Text('Confirm'),
           ),

@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+
 import '../model/cart_item.dart';
 import '../model/orderItem.dart';
 
@@ -28,6 +30,35 @@ class CartService {
 
     final response = await http.post(
       Uri.parse('$baseUrl/api/user/order/request'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(payload),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception("Failed to place order: ${response.body}");
+    }
+  }
+
+  Future<void> placeOrderWithoutAddress({
+    required int userId,
+    required List<CartItem> cartItems,
+  }) async {
+    final List<int> bookIds = cartItems.map((item) => item.book.id!).toList();
+    final double totalPrice = cartItems.fold(
+      0.0,
+      (sum, item) => sum + (item.book.bookPrice * item.quantity),
+    );
+
+    final payload = {
+      "userId": userId,
+      "address": "",
+      "contact": "",
+      "bookIds": bookIds,
+      "orderPrice": totalPrice,
+    };
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/user/order/request/withoutAddress'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(payload),
     );
