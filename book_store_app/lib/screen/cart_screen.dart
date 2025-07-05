@@ -27,18 +27,36 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Future<void> _loadCart() async {
-    int localUserId = 1;
-    final userIdStr = await _secureStorage.read(key: "user_id");
-    if (userIdStr != null) {
-      localUserId = int.parse(userIdStr);
-    }
-
-    final items = await _bookService.getLocalCart();
     setState(() {
-      _cartItems = items;
-      _isLoading = false;
-      _user_id = localUserId;
+      _isLoading = true;
     });
+
+    int localUserId = 1;
+    try {
+      final userIdStr = await _secureStorage.read(key: "user_id");
+      print("user_id from storage: $userIdStr");
+      if (userIdStr != null) {
+        localUserId = int.parse(userIdStr);
+      }
+
+      final items = await _bookService.getLocalCart();
+      print("Loaded cart items: $items");
+
+      setState(() {
+        _cartItems = items;
+        _user_id = localUserId;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print("Error loading cart: $e");
+      setState(() {
+        _isLoading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to load cart: $e")),
+      );
+    }
   }
 
   Future<void> _updateCart() async {
@@ -69,10 +87,22 @@ class _CartScreenState extends State<CartScreen> {
     });
   }
 
+  void _removeItem(int index) async {
+    setState(() {
+      _cartItems.removeAt(index);
+    });
+
+    await _bookService.removeItem(index);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Item removed from cart')),
+    );
+  }
+
   double get _totalPrice {
     return _cartItems.fold(
       0.0,
-      (total, item) => total + item.book.bookPrice * item.quantity,
+          (total, item) => total + item.book.bookPrice * item.quantity,
     );
   }
 
@@ -97,7 +127,7 @@ class _CartScreenState extends State<CartScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(ctx); // Close the dialog
+              Navigator.pop(ctx);
 
               try {
                 setState(() {
@@ -110,7 +140,7 @@ class _CartScreenState extends State<CartScreen> {
                 );
 
                 setState(() {
-                  _cartItems.clear(); // Clear cart
+                  _cartItems.clear();
                   _isLoading = false;
                 });
                 _clearCart();
@@ -122,9 +152,9 @@ class _CartScreenState extends State<CartScreen> {
                 setState(() {
                   _isLoading = false;
                 });
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text('Checkout failed: $e')));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Checkout failed: $e')),
+                );
               }
             },
             child: const Text('Confirm'),
@@ -145,7 +175,7 @@ class _CartScreenState extends State<CartScreen> {
             children: [
               IconButton(
                 icon: const Icon(Icons.shopping_cart),
-                onPressed: () {}, // No action needed here for CartScreen
+                onPressed: () {},
               ),
               if (_cartItems.isNotEmpty)
                 Positioned(
@@ -153,7 +183,7 @@ class _CartScreenState extends State<CartScreen> {
                   top: 6,
                   child: Container(
                     padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: Colors.red,
                       shape: BoxShape.circle,
                     ),
@@ -177,139 +207,152 @@ class _CartScreenState extends State<CartScreen> {
           : _cartItems.isEmpty
           ? const Center(child: Text('Your cart is empty'))
           : Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(12.0),
+              itemCount: _cartItems.length,
+              itemBuilder: (context, index) {
+                final item = _cartItems[index];
+                final book = item.book;
+                return Card(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  child: Padding(
                     padding: const EdgeInsets.all(12.0),
-                    itemCount: _cartItems.length,
-                    itemBuilder: (context, index) {
-                      final item = _cartItems[index];
-                      final book = item.book;
-                      return Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: book.bookImageUrl != null
+                              ? Image.network(
+                            "http://10.0.2.2:8082/api/auth/image/${book.bookImageUrl}",
+                            width: 60,
+                            height: 80,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, _) =>
+                                Container(
+                                  width: 60,
+                                  height: 80,
+                                  color: Colors.grey[300],
+                                  child: const Icon(Icons.book),
+                                ),
+                          )
+                              : Container(
+                            width: 60,
+                            height: 80,
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.book),
+                          ),
                         ),
-                        elevation: 4,
-                        margin: const EdgeInsets.symmetric(vertical: 8),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Row(
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment:
+                            CrossAxisAlignment.start,
                             children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8.0),
-                                child: book.bookImageUrl != null
-                                    ? Image.network(
-                                        "http://10.0.2.2:8082/api/auth/image/${book.bookImageUrl}",
-                                        width: 60,
-                                        height: 80,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Container(
-                                        width: 60,
-                                        height: 80,
-                                        color: Colors.grey[300],
-                                        child: const Icon(Icons.book),
-                                      ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      book.bookName,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      "Author: ${book.authorNames.join(', ')}",
-                                    ),
-                                    Text("Category: ${book.bookCategory}"),
-                                    Text(
-                                      "৳${book.bookPrice.toStringAsFixed(2)} x ${item.quantity} = ৳${(book.bookPrice * item.quantity).toStringAsFixed(2)}",
-
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                  ],
+                              Text(
+                                book.bookName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                              Column(
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.add_circle_outline),
-                                    onPressed: () => _increaseQuantity(index),
-                                  ),
-                                  Text(
-                                    '${item.quantity}',
-                                    style: const TextStyle(fontSize: 16),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(
-                                      Icons.remove_circle_outline,
-                                      color: item.quantity == 1
-                                          ? Colors.grey
-                                          : Colors.red,
-                                    ),
-                                    onPressed: item.quantity > 1
-                                        ? () => _decreaseQuantity(index)
-                                        : null,
-                                  ),
-                                ],
+                              const SizedBox(height: 4),
+
+                              Text("Category: ${book.bookCategory}"),
+                              Text(
+                                "৳${book.bookPrice.toStringAsFixed(2)} x ${item.quantity} = ৳${(book.bookPrice * item.quantity).toStringAsFixed(2)}",
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black54,
+                                ),
                               ),
                             ],
                           ),
                         ),
-                      );
-                    },
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.blueGrey[50],
-                    border: const Border(
-                      top: BorderSide(color: Colors.grey, width: 0.5),
+                        const SizedBox(width: 10),
+                        Column(
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                  Icons.add_circle_outline),
+                              onPressed: () =>
+                                  _increaseQuantity(index),
+                            ),
+                            Text(
+                              '${item.quantity}',
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.remove_circle_outline,
+                                color: item.quantity == 1
+                                    ? Colors.grey
+                                    : Colors.red,
+                              ),
+                              onPressed: item.quantity > 1
+                                  ? () => _decreaseQuantity(index)
+                                  : null,
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete,
+                                  color: Colors.red),
+                              tooltip: 'Remove item',
+                              onPressed: () => _removeItem(index),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Total: ৳${_totalPrice.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                        ),
-                      ),
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.payment),
-                        label: const Text('Checkout'),
-                        onPressed: _cartItems.isNotEmpty
-                            ? _showCheckoutDialog
-                            : _showEmptyToast,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                        ),
-                      ),
-                    ],
+                );
+              },
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 10,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.blueGrey[50],
+              border: const Border(
+                top: BorderSide(color: Colors.grey, width: 0.5),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Total: ৳${_totalPrice.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
+                ),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.payment),
+                  label: const Text('Checkout'),
+                  onPressed: _cartItems.isNotEmpty
+                      ? _showCheckoutDialog
+                      : _showEmptyToast,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                   ),
                 ),
               ],
             ),
+          ),
+        ],
+      ),
     );
   }
 }

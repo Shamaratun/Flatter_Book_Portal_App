@@ -29,39 +29,22 @@ class HomeScreen extends StatelessWidget {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            DrawerHeader(
-              decoration: const BoxDecoration(color: Colors.blue),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Text(
-                  //   '${user['firstName']} ${user['lastName']}',
-                  //   style: const TextStyle(color: Colors.white, fontSize: 24),
-                  // ),
-                  Text(
-                    'email',
-                    style: const TextStyle(color: Colors.white70, fontSize: 16),
-                  ),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.storage),
-              title: const Text('Resources'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ResourcesScreen(),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Logout'),
-              onTap: () => _logout(context),
-            ),
+            UserAccountsDrawerHeader(accountName: Text("User Name"), accountEmail: Text("Example@gmail.com")),
+
+
+            // ListTile(
+            //   leading: const Icon(Icons.storage),
+            //   title: const Text('Resources'),
+            //   onTap: () {
+            //     Navigator.push(
+            //       context,
+            //       MaterialPageRoute(
+            //         builder: (context) => const ResourcesScreen(),
+            //       ),
+            //     );
+            //   },
+            // ),
+
 
             // @override
             // Widget build(BuildContext context) {
@@ -108,9 +91,18 @@ class HomeScreen extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder: (context) => const MyOrdersScreen(),
+
                   ),
                 );
               },
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.red),
+              title: const Text(
+                'Logout',
+                style: TextStyle(color: Colors.red),
+              ),
+              onTap: () => _logout(context),
             ),
           ],
         ),

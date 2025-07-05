@@ -81,27 +81,40 @@ class BookService {
   }
 
   Future<void> addToCart(Book book) async {
-    final cartJson = await _secureStorage.read(key: 'cart_items');
-    List<CartItem> cart = [];
+    try {
+      final cartJson = await _secureStorage.read(key: 'cart_items');
+      List<CartItem> cart = [];
 
-    if (cartJson != null) {
-      List<dynamic> decoded = jsonDecode(cartJson);
-      cart = decoded.map((item) => CartItem.fromJson(item)).toList();
+      if (cartJson != null) {
+        final List<dynamic> decoded = jsonDecode(cartJson);
+
+        // ✅ Try to parse safely, skip corrupted items
+        for (var item in decoded) {
+          try {
+            cart.add(CartItem.fromJson(item));
+          } catch (e) {
+          }
+        }
+      }
+
+      // Check if item already exists
+      int index = cart.indexWhere((item) => item.book.id == book.id);
+      if (index != -1) {
+        cart[index].quantity += 1;
+      } else {
+        cart.add(CartItem(book: book));
+      }
+
+      await _secureStorage.write(
+        key: 'cart_items',
+        value: jsonEncode(cart.map((item) => item.toJson()).toList()),
+      );
+    } catch (e) {
+      print(e);
+      rethrow; // or show a user-friendly message
     }
-
-    // Check if item already exists
-    int index = cart.indexWhere((item) => item.book.id == book.id);
-    if (index != -1) {
-      cart[index].quantity += 1;
-    } else {
-      cart.add(CartItem(book: book));
-    }
-
-    await _secureStorage.write(
-      key: 'cart_items',
-      value: jsonEncode(cart.map((item) => item.toJson()).toList()),
-    );
   }
+
 
   Future<List<CartItem>> getLocalCart() async {
     final cartJson = await _secureStorage.read(key: 'cart_items');
@@ -122,4 +135,22 @@ class BookService {
   Future<void> clearLocalCart() async {
     await _secureStorage.delete(key: 'cart_items');
   }
+
+  Future<void> removeItem(int index) async {
+    final jsonString = await _secureStorage.read(key: 'cart_items');
+    if (jsonString == null) return;
+
+    List<dynamic> cartList = jsonDecode(jsonString);
+
+    if (index < 0 || index >= cartList.length) return;
+
+    cartList.removeAt(index); // Remove item at the given index
+
+    // Save updated cart list
+    await _secureStorage.write(
+      key: 'cart_items',
+      value: jsonEncode(cartList),
+    );
+  }
+
 }

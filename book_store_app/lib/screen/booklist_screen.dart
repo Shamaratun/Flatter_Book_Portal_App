@@ -40,12 +40,12 @@ class _BookListScreenState extends State<BookListScreen> {
       _filteredBooks = _allBooks.where((book) {
         final matchesAuthor =
             authorQuery.isEmpty ||
-            book.authorNames.any(
-              (author) => author.toLowerCase().contains(authorQuery),
-            );
+                book.authorNames.any(
+                      (author) => author.toLowerCase().contains(authorQuery),
+                );
         final matchesCategory =
             categoryQuery.isEmpty ||
-            book.bookCategory.toLowerCase().contains(categoryQuery);
+                book.bookCategory.toLowerCase().contains(categoryQuery);
         return matchesAuthor && matchesCategory;
       }).toList();
     });
@@ -107,109 +107,109 @@ class _BookListScreenState extends State<BookListScreen> {
               child: _filteredBooks.isEmpty
                   ? const Center(child: Text('No books found'))
                   : GridView.builder(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2, // 2 columns
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 10,
-                            childAspectRatio: 0.65, // adjust for layout fit
+                gridDelegate:
+                const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2, // 2 columns
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  childAspectRatio: 0.65, // adjust for layout fit
+                ),
+                itemCount: _filteredBooks.length,
+                itemBuilder: (context, index) {
+                  final book = _filteredBooks[index];
+                  return Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      children: [
+                        ClipRRect(
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(10),
                           ),
-                      itemCount: _filteredBooks.length,
-                      itemBuilder: (context, index) {
-                        final book = _filteredBooks[index];
-                        return Card(
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          child: book.bookImageUrl != null
+                              ? Image.network(
+                            "http://10.0.2.2:8082/api/auth/image/${book.bookImageUrl}",
+                            width: double.infinity,
+                            height: 120,
+                            fit: BoxFit.cover,
+                          )
+                              : const Icon(Icons.book, size: 100),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              ClipRRect(
-                                borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(10),
+                              Text(
+                                book.bookName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
                                 ),
-                                child: book.bookImageUrl != null
-                                    ? Image.network(
-                                        "http://10.0.2.2:8082/api/auth/image/${book.bookImageUrl}",
-                                        width: double.infinity,
-                                        height: 120,
-                                        fit: BoxFit.cover,
-                                      )
-                                    : const Icon(Icons.book, size: 100),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      book.bookName,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    Text(
-                                      "Author: ${book.authorNames.join(', ')}",
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                    Text(
-                                      "Category: ${book.bookCategory}",
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                    Text(
-                                      "Rating: ${book.bookRating}",
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                    Text(
-                                      "৳${book.bookPrice.toStringAsFixed(2)}",
-                                      style: const TextStyle(fontSize: 12),
-                                    ),
-                                  ],
-                                ),
+                              Text(
+                                "Author: ${book.authorNames.join(', ')}",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 12),
                               ),
-                              const Spacer(),
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                    right: 8.0,
-                                    bottom: 4.0,
-                                  ),
-                                  child: IconButton(
-                                    icon: const Icon(Icons.add_shopping_cart),
-                                    onPressed: () async {
-                                      try {
-                                        await _bookService.addToCart(book);
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text('Added to cart'),
-                                          ),
-                                        );
-                                      } catch (e) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          SnackBar(content: Text('Error: $e')),
-                                        );
-                                      }
-                                    },
-                                  ),
-                                ),
+                              Text(
+                                "Category: ${book.bookCategory}",
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                              Text(
+                                "Rating: ${book.bookRating}",
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                              Text(
+                                "৳${book.bookPrice.toStringAsFixed(2)}",
+                                style: const TextStyle(fontSize: 12),
                               ),
                             ],
                           ),
-                        );
-                      },
+                        ),
+                        const Spacer(),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              right: 8.0,
+                              bottom: 4.0,
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.add_shopping_cart),
+                              onPressed: () async {
+                                try {
+                                  await _bookService.addToCart(book);
+                                  ScaffoldMessenger.of(
+                                    context,
+                                  ).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Added to cart'),
+                                    ),
+                                  );
+                                } catch (e) {
+                                  ScaffoldMessenger.of(
+                                    context,
+                                  ).showSnackBar(
+                                    SnackBar(content: Text('Error: $e')),
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                  );
+                },
+              ),
             ),
           ],
         ),
