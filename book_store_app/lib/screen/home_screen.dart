@@ -1,3 +1,4 @@
+import 'package:book_store_app/screen/my_orders_screen.dart';
 import 'package:book_store_app/screen/resources_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -9,8 +10,8 @@ import 'orderItem_screen.dart';
 
 class HomeScreen extends StatelessWidget {
 
-
   const HomeScreen({super.key});
+
 
   Future<void> _logout(BuildContext context) async {
     await const FlutterSecureStorage().delete(key: 'access_token');
@@ -95,20 +96,18 @@ class HomeScreen extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const CartScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const CartScreen()),
                 );
               },
             ),
             ListTile(
               leading: const Icon(Icons.offline_pin_outlined),
-              title: const Text('Order'),
+              title: const Text('My Ordered List'),
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const OrderitemScreen(),
+                    builder: (context) => const MyOrdersScreen(),
                   ),
                 );
               },

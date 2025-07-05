@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import '../model/author.dart';
 import '../model/book.dart';
+import '../model/cart_item.dart';
+final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
 
 class BookService {
   // static const String baseUrl = 'http://192.168.100.21:8082';
@@ -74,11 +77,47 @@ class BookService {
     }
   }
 
-  Future<void> addToCart(int id) async {
-    final response = await http.post(Uri.parse('$baseUrl/book/$id'));
-    if (response.statusCode != 200) {
-      throw Exception("failed to add in cart ");
+  Future<void> addToCart(Book book) async {
+    final cartJson = await _secureStorage.read(key: 'cart_items');
+    List<CartItem> cart = [];
+
+    if (cartJson != null) {
+      List<dynamic> decoded = jsonDecode(cartJson);
+      cart = decoded.map((item) => CartItem.fromJson(item)).toList();
     }
+
+    // Check if item already exists
+    int index = cart.indexWhere((item) => item.book.id == book.id);
+    if (index != -1) {
+      cart[index].quantity += 1;
+    } else {
+      cart.add(CartItem(book: book));
+    }
+
+    await _secureStorage.write(
+      key: 'cart_items',
+      value: jsonEncode(cart.map((item) => item.toJson()).toList()),
+    );
+  }
+
+  Future<List<CartItem>> getLocalCart() async {
+    final cartJson = await _secureStorage.read(key: 'cart_items');
+    if (cartJson != null) {
+      List<dynamic> data = jsonDecode(cartJson);
+      return data.map((item) => CartItem.fromJson(item)).toList();
+    }
+    return [];
+  }
+
+  Future<void> saveCart(List<CartItem> cart) async {
+    await _secureStorage.write(
+      key: 'cart_items',
+      value: jsonEncode(cart.map((item) => item.toJson()).toList()),
+    );
+  }
+
+  Future<void> clearLocalCart() async {
+    await _secureStorage.delete(key: 'cart_items');
   }
 }
 

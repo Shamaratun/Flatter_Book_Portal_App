@@ -38,13 +38,13 @@ class _LoginScreenState extends State<LoginScreen> {
         );
         await const FlutterSecureStorage().write(
           key: 'access_token',
+
           value: response['access_token'],
         );
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (context) => HomeScreen(),
-          ),
+          MaterialPageRoute(builder: (context) => HomeScreen(),
+        )
         );
       } catch (e) {
         ScaffoldMessenger.of(

@@ -1,20 +1,39 @@
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
+import '../model/cart_item.dart';
 import '../model/orderItem.dart';
+
 class CartService {
-  static const String baseUrl ='http://192.168.100.21:8082';
+  static const String baseUrl = 'http://10.0.2.2:8082';
 
-
-  Future<List<OrderItem>> getAllOrderItems() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/user/get/my/all/order'),
+  Future<void> placeOrder({
+    required int userId,
+    required String address,
+    required String contact,
+    required List<CartItem> cartItems,
+  }) async {
+    final List<int> bookIds = cartItems.map((item) => item.book.id!).toList();
+    final double totalPrice = cartItems.fold(
+      0.0,
+      (sum, item) => sum + (item.book.bookPrice * item.quantity),
     );
-    if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => OrderItem.fromJson(json)).toList();
-    } else {
-      throw Exception("failed to load orderItems");
+
+    final payload = {
+      "userId": userId,
+      "address": address,
+      "contact": contact,
+      "bookIds": bookIds,
+      "orderPrice": totalPrice,
+    };
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/user/order/request'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(payload),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception("Failed to place order: ${response.body}");
     }
   }
 
@@ -23,24 +42,32 @@ class CartService {
     if (response.statusCode == 200) {
       return OrderItem.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception("failed to load OrderItems");
+      throw Exception("Failed to load order item");
     }
   }
-  Future<void> removeItem(int id) async {
+
+  Future<void> removeItemfromcart(int id) async {
     final response = await http.delete(Uri.parse('$baseUrl/orderItem/$id'));
     if (response.statusCode != 200) {
-      throw Exception("failed to remove orderItem");
+      throw Exception("Failed to remove order item");
     }
+  }
 
-    Future<void>   increaseQuantity(int id) async {
-      final response = await http.delete(Uri.parse('$baseUrl/orderItem/$id'));
-      if (response.statusCode != 200) {
-        throw Exception("failed to remove orderItem");
-      }
-      Future<void> decreaseQuantity(int id) async {
-        final response = await http.delete(Uri.parse('$baseUrl/orderItem/$id'));
-        if (response.statusCode != 200) {
-          throw Exception("failed to remove orderItem");
-        }
-      }
-    }}}
+  Future<void> increaseQuantity(int id) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/orderItem/increase/$id'),
+    );
+    if (response.statusCode != 200) {
+      throw Exception("Failed to increase quantity");
+    }
+  }
+
+  Future<void> decreaseQuantity(int id) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/orderItem/decrease/$id'),
+    );
+    if (response.statusCode != 200) {
+      throw Exception("Failed to decrease quantity");
+    }
+  }
+}

@@ -1,19 +1,18 @@
 class Order {
-  final int?id;
+  final int? id;
   final double orderPrice;
   final String address;
   final String contact;
+  final int userId;
+  final List<int> bookIds;
 
-
-   // final OrderStatus orderStatus;
-  // final Set<OrderItem> orderItems = new HashSet<>();
-  // final Set<OrderItem> orderItems = new HashSet<>();
-
-  Order({this.id,
+  Order({
+    this.id,
     required this.orderPrice,
     required this.address,
     required this.contact,
-    // required this.orderStatus
+    required this.bookIds,
+    required this.userId,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
@@ -22,12 +21,10 @@ class Order {
       address: json['address'] as String? ?? '',
       orderPrice: (json['orderPrice'] as num?)?.toDouble() ?? 0.0,
       contact: json['contact'] as String? ?? '',
-        // orderStatus: json['orderStatus'] as String? ?? '',
-
-      // bookImageUrl: json['bookImageUrl'] as String?,
+      bookIds: List<int>.from(json['bookIds'] ?? []),
+      userId: json['userId'] as int? ?? 0,
     );
   }
-
 
   Map<String, dynamic> toJson() {
     return {
@@ -35,7 +32,8 @@ class Order {
       'address': address,
       'orderPrice': orderPrice,
       'contact': contact,
-      // 'orderStatus': orderStatus,
+      'userId': userId,
+      'bookIds': [bookIds],
     };
   }
 }
