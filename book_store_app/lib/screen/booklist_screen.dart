@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-
 import '../model/book.dart';
 import '../services/book_service.dart';
+import 'book_details_screen.dart';
 
 class BookListScreen extends StatefulWidget {
   const BookListScreen({super.key});
@@ -38,14 +38,11 @@ class _BookListScreenState extends State<BookListScreen> {
 
     setState(() {
       _filteredBooks = _allBooks.where((book) {
-        final matchesAuthor =
-            authorQuery.isEmpty ||
-                book.authorNames.any(
-                      (author) => author.toLowerCase().contains(authorQuery),
-                );
-        final matchesCategory =
-            categoryQuery.isEmpty ||
-                book.bookCategory.toLowerCase().contains(categoryQuery);
+        final matchesAuthor = authorQuery.isEmpty ||
+            book.authorNames.any((author) =>
+                author.toLowerCase().contains(authorQuery));
+        final matchesCategory = categoryQuery.isEmpty ||
+            book.bookCategory.toLowerCase().contains(categoryQuery);
         return matchesAuthor && matchesCategory;
       }).toList();
     });
@@ -66,6 +63,7 @@ class _BookListScreenState extends State<BookListScreen> {
         padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
+            // Search Fields
             Row(
               children: [
                 Expanded(
@@ -100,19 +98,19 @@ class _BookListScreenState extends State<BookListScreen> {
                 ),
               ],
             ),
-
             const SizedBox(height: 10),
 
+            // Book Grid
             Expanded(
               child: _filteredBooks.isEmpty
                   ? const Center(child: Text('No books found'))
                   : GridView.builder(
                 gridDelegate:
                 const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2, // 2 columns
+                  crossAxisCount: 2,
                   crossAxisSpacing: 10,
                   mainAxisSpacing: 10,
-                  childAspectRatio: 0.65, // adjust for layout fit
+                  childAspectRatio: 0.65,
                 ),
                 itemCount: _filteredBooks.length,
                 itemBuilder: (context, index) {
@@ -124,6 +122,7 @@ class _BookListScreenState extends State<BookListScreen> {
                     ),
                     child: Column(
                       children: [
+                        // Book Image
                         ClipRRect(
                           borderRadius: const BorderRadius.vertical(
                             top: Radius.circular(10),
@@ -137,6 +136,8 @@ class _BookListScreenState extends State<BookListScreen> {
                           )
                               : const Icon(Icons.book, size: 100),
                         ),
+
+                        // Book Info
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Column(
@@ -145,23 +146,22 @@ class _BookListScreenState extends State<BookListScreen> {
                               Text(
                                 book.bookName,
                                 style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Text(
                                 "Author: ${book.authorNames.join(', ')}",
+                                style: const TextStyle(fontSize: 12),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 12),
                               ),
                               Text(
                                 "Category: ${book.bookCategory}",
+                                style: const TextStyle(fontSize: 12),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 12),
                               ),
                               Text(
                                 "Rating: ${book.bookRating}",
@@ -175,34 +175,77 @@ class _BookListScreenState extends State<BookListScreen> {
                           ),
                         ),
                         const Spacer(),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: Padding(
-                            padding: const EdgeInsets.only(
-                              right: 8.0,
-                              bottom: 4.0,
-                            ),
-                            child: IconButton(
-                              icon: const Icon(Icons.add_shopping_cart),
-                              onPressed: () async {
-                                try {
-                                  await _bookService.addToCart(book);
-                                  ScaffoldMessenger.of(
+
+                        // Action Buttons
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0, vertical: 4.0),
+                          child: Row(
+                            mainAxisAlignment:
+                            MainAxisAlignment.spaceBetween,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.add_shopping_cart),
+                                onPressed: () async {
+                                  try {
+                                    await _bookService.addToCart(book);
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(
+                                      const SnackBar(
+                                          content:
+                                          Text('Added to cart')),
+                                    );
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(
+                                      SnackBar(
+                                          content:
+                                          Text('Error: $e')),
+                                    );
+                                  }
+                                },
+                              ),
+
+                              IconButton(
+                                icon: const Icon(Icons.info_outline,
+                                    color: Colors.redAccent),
+                                // icon: const Icon(Icons.info_outline),
+                                // label: const Text('View Details'),
+                                onPressed: () {
+                                  Navigator.push(
                                     context,
-                                  ).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Added to cart'),
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          BookDetailsScreen(book: book),
                                     ),
                                   );
-                                } catch (e) {
-                                  ScaffoldMessenger.of(
-                                    context,
-                                  ).showSnackBar(
-                                    SnackBar(content: Text('Error: $e')),
-                                  );
-                                }
-                              },
-                            ),
+                                },
+                              ),
+
+                              IconButton(
+                                icon: const Icon(Icons.favorite,
+                                    color: Colors.redAccent),
+                                onPressed: () async {
+                                  try {
+                                    await _bookService
+                                        .addToFavourites(book);
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(
+                                      const SnackBar(
+                                          content: Text(
+                                              'Added to favourite')),
+                                    );
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context)
+                                        .showSnackBar(
+                                      SnackBar(
+                                          content:
+                                          Text('Error: $e')),
+                                    );
+                                  }
+                                },
+                              ),
+                            ],
                           ),
                         ),
                       ],

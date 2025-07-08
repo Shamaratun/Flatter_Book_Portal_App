@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'booklist_screen.dart';
 import 'cart_screen.dart';
+import 'favourite_screen.dart';
 import 'login_screen.dart';
 import 'orderItem_screen.dart';
 
@@ -25,6 +26,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Welcome')),
+
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -97,7 +99,20 @@ class HomeScreen extends StatelessWidget {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.logout, color: Colors.red),
+              leading: const Icon(Icons.favorite, color: Colors.grey),
+              title: const Text('Favourite'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FavouriteScreen(),
+                  ),
+                );
+              },
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.logout, color: Colors.redAccent),
               title: const Text(
                 'Logout',
                 style: TextStyle(color: Colors.red),
