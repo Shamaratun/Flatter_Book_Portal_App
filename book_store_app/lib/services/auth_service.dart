@@ -31,7 +31,7 @@ class AuthService {
       'Authorization': 'Bearer $token',
     };
 
-    final uri = Uri.parse('$baseUrl/api/auth/login');
+    final uri = Uri.parse('$baseUrl$endpoint');
 
     switch (method.toUpperCase()) {
       case 'GET':
@@ -44,6 +44,24 @@ class AuthService {
         return await http.delete(uri, headers: headers);
       default:
         throw Exception('Unsupported HTTP method');
+    }
+  }
+
+  Future<Map<String, dynamic>> register(String name, String email, String password) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/auth/register'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'name': name,
+        'email': email,
+        'password': password,
+      }),
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to register: ${response.body}');
     }
   }
 }

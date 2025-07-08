@@ -1,3 +1,4 @@
+import 'package:book_store_app/screen/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -103,6 +104,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: _login,
                       child: const Text('Login'),
                     ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                  );
+                },
+                child: const Text("Don't have an account? Register here"),
+              ),
             ],
           ),
         ),

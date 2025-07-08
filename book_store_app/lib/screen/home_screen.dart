@@ -1,5 +1,7 @@
 import 'package:book_store_app/screen/my_orders_screen.dart';
+import 'package:book_store_app/screen/register_screen.dart';
 import 'package:book_store_app/screen/resources_screen.dart';
+import 'package:book_store_app/screen/user_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -26,52 +28,26 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Welcome')),
-
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            UserAccountsDrawerHeader(accountName: Text("User Name"), accountEmail: Text("Example@gmail.com")),
+            const UserAccountsDrawerHeader(
+              accountName: Text("User Name"),
+              accountEmail: Text("example@gmail.com"),
+              currentAccountPicture: CircleAvatar(
 
-
-            // ListTile(
-            //   leading: const Icon(Icons.storage),
-            //   title: const Text('Resources'),
-            //   onTap: () {
-            //     Navigator.push(
-            //       context,
-            //       MaterialPageRoute(
-            //         builder: (context) => const ResourcesScreen(),
-            //       ),
-            //     );
-            //   },
-            // ),
-
-
-            // @override
-            // Widget build(BuildContext context) {
-            //   return Scaffold(
-            //     appBar: AppBar(title: const Text('Book Store App')),
-            //     drawer: Drawer(
-            //       child: ListView(
-            //         padding: EdgeInsets.zero,
-            //         children: [
-            //           const DrawerHeader(
-            //             decoration: BoxDecoration(color: Colors.blue),
-            //             child: Text(
-            //               'Menu',
-            //               style: TextStyle(color: Colors.white10, fontSize: 30),
-            //             ),
-            //           ),
+                backgroundColor: Colors.white,
+                child: Icon(Icons.person, color: Colors.blue),
+              ),
+            ),
             ListTile(
               leading: const Icon(Icons.book_online_outlined),
-              title: const Text('Book'),
+              title: const Text('Books'),
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const BookListScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const BookListScreen()),
                 );
               },
             ),
@@ -110,7 +86,27 @@ class HomeScreen extends StatelessWidget {
                 );
               },
             ),
-
+            ListTile(
+              leading: const Icon(Icons.person, color: Colors.blue),
+              title: const Text('My Profile'),
+              onTap: () async {
+                final storage = const FlutterSecureStorage();
+                String? userIdString = await storage.read(key: 'user_id');
+                if (userIdString != null) {
+                  int userId = int.parse(userIdString);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => UserProfileScreen(userId: userId )),
+                  );
+                } else {
+                  // handle no userId found, maybe show an error or logout user
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('User ID not found, please login again.')),
+                  );
+                  // Optionally navigate to login screen
+                }
+              },
+            ),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.redAccent),
               title: const Text(
@@ -123,7 +119,7 @@ class HomeScreen extends StatelessWidget {
         ),
       ),
 
-      body: const Center(child: Text('Welcome to Bookshop app!')),
+      body: const BookListScreen(),
     );
   }
 }
